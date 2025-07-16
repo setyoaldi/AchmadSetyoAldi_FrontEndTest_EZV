@@ -1,103 +1,139 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import { useGetTodosQuery, useAddTodoMutation } from "../lib/api/todos";
+import { toast, Toaster } from "react-hot-toast";
+
+export const dynamic = "force-dynamic";
+
+export default function HomePage() {
+  const LIMIT = 10;
+  const TOTAL_ITEMS = 200;
+  const TOTAL_PAGES = Math.ceil(TOTAL_ITEMS / LIMIT);
+  const [page, setPage] = useState(0);
+  const { data: fetchedTodos = [], isLoading } = useGetTodosQuery({
+    start: page * LIMIT,
+    limit: LIMIT,
+  });
+  const [title, setTitle] = useState("");
+  const [addTodo] = useAddTodoMutation();
+  const [localTodos, setLocalTodos] = useState<typeof fetchedTodos>([]);
+
+  useEffect(() => {
+    setLocalTodos(fetchedTodos);
+  }, [fetchedTodos]);
+
+  const handleAdd = async (e: React.FormEvent) => {
+    setPage(0);
+    e.preventDefault();
+    if (!title) return;
+    const newTodo = { title, userId: 1, completed: false };
+    const result = await addTodo(newTodo);
+    if ("data" in result) {
+      setLocalTodos((prev: typeof localTodos) => {
+        const maxId = Array.isArray(prev)
+          ? prev.reduce((max, todo) => {
+              const id = typeof todo?.id === "number" ? todo.id : 0;
+              return Math.max(max, id);
+            }, 0)
+          : 0;
+        const updated = [{ ...result.data, id: maxId + 1 }, ...prev];
+        return updated.slice(0, LIMIT);
+      });
+      toast.success("Todo added successfully! but only Local");
+    }
+    setTitle("");
+  };
+
+  const toggleCompleted = (todoId: number) => {
+    setLocalTodos((prev) =>
+      prev.map((todo) =>
+        todo.id === todoId ? { ...todo, completed: !todo.completed } : todo
+      )
+    );
+    toast.success("Todo updated successfully! but only Local");
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+    <div className="p-6 max-w-xl mx-auto">
+      <Toaster position="top-right" />
+      <h1 className="text-2xl font-bold mb-4 text-center">Todo List</h1>
+      <form
+        onSubmit={handleAdd}
+        className="mb-4 flex flex-col sm:flex-row gap-2 w-full"
+      >
+        <input
+          className="border p-2 rounded w-full"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="New todo"
         />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded w-full sm:w-auto cursor-pointer"
+          type="submit"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          Add
+        </button>
+      </form>
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : (
+        <ul className="pl-5 space-y-1">
+          {localTodos.map((todo, index) => (
+            <li key={todo.id} className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center w-full">
+                <span
+                  className="font-medium cursor-pointer"
+                  onClick={() => toggleCompleted(todo.id)}
+                >
+                  {page * LIMIT + index + 1}. {todo.title}
+                </span>
+                <span
+                  className={`text-sm cursor-pointer ${
+                    todo.completed ? "text-green-600" : "text-red-500"
+                  }`}
+                  onClick={() => toggleCompleted(todo.id)}
+                >
+                  {todo.completed ? "✓" : "✗"}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="mt-4 flex items-center gap-2 justify-center">
+        <button
+          className="bg-gray-300 px-3 py-1 rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={page === 0}
+          onClick={() => setPage(0)}
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          First
+        </button>
+        <button
+          className="bg-gray-300 px-3 py-1 rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={page === 0}
+          onClick={() => setPage((p) => Math.max(p - 1, 0))}
         >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          Prev
+        </button>
+        <span className="px-3 py-1 rounded bg-blue-500 text-white">
+          {page + 1}
+        </span>
+        <button
+          className="bg-gray-300 px-3 py-1 cursor-pointer rounded disabled:opacity-50"
+          disabled={page + 1 >= TOTAL_PAGES}
+          onClick={() => setPage((p) => Math.min(p + 1, TOTAL_PAGES - 1))}
+        >
+          Next
+        </button>
+        <button
+          className="bg-gray-300 px-3 py-1 rounded cursor-pointer disabled:opacity-50"
+          disabled={page + 1 >= TOTAL_PAGES}
+          onClick={() => setPage(TOTAL_PAGES - 1)}
+        >
+          Last
+        </button>
+      </div>
     </div>
   );
 }
