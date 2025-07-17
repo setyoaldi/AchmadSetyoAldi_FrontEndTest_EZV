@@ -57,82 +57,112 @@ export default function HomePage() {
   return (
     <div className="p-6 max-w-xl mx-auto">
       <Toaster position="top-right" />
-      <h1 className="text-2xl font-bold mb-4 text-center">Todo List</h1>
-      <form
-        onSubmit={handleAdd}
-        className="mb-4 flex flex-col sm:flex-row gap-2 w-full"
-      >
-        <input
-          className="border p-2 rounded w-full"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="New todo"
-        />
-        <button
-          className="bg-blue-500 text-white px-4 py-2 rounded w-full sm:w-auto cursor-pointer"
-          type="submit"
+      <div className="max-w-3xl mx-auto">
+        <h1 className="text-3xl font-bold mb-2">TASK</h1>
+        <div className="bg-white border-2 border-purple-500 rounded-2xl p-4 flex items-center gap-4 shadow-md mb-6">
+          <div className="w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center text-purple-600 font-bold text-lg border border-purple-300">
+            {localTodos.length > 0
+              ? `${Math.round(
+                  (localTodos.filter((t) => t.completed).length /
+                    localTodos.length) *
+                    100
+                )}%`
+              : "0%"}
+          </div>
+          <div>
+            <p className="font-semibold">
+              You have {localTodos.length} task{localTodos.length > 1 && "s"} to
+              complete in this page.
+            </p>
+            <p className="text-gray-500 text-sm">
+              {localTodos.filter((t) => t.completed).length === 0
+                ? "No tasks completed yet. Keep going!"
+                : `${
+                    localTodos.filter((t) => t.completed).length
+                  } task(s) completed.`}
+            </p>
+          </div>
+        </div>
+        <form
+          onSubmit={handleAdd}
+          className="mb-6 flex flex-col sm:flex-row gap-3"
         >
-          Add
-        </button>
-      </form>
-      {isLoading ? (
-        <p>Loading...</p>
-      ) : (
-        <ul className="pl-5 space-y-1">
-          {localTodos.map((todo, index) => (
-            <li key={todo.id} className="flex justify-between items-center">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center w-full">
-                <span
-                  className="font-medium cursor-pointer"
-                  onClick={() => toggleCompleted(todo.id)}
-                >
-                  {page * LIMIT + index + 1}. {todo.title}
-                </span>
-                <span
-                  className={`text-sm cursor-pointer ${
-                    todo.completed ? "text-green-600" : "text-red-500"
-                  }`}
-                  onClick={() => toggleCompleted(todo.id)}
-                >
-                  {todo.completed ? "✓" : "✗"}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-      <div className="mt-4 flex items-center gap-2 justify-center">
-        <button
-          className="bg-gray-300 px-3 py-1 rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={page === 0}
-          onClick={() => setPage(0)}
-        >
-          First
-        </button>
-        <button
-          className="bg-gray-300 px-3 py-1 rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={page === 0}
-          onClick={() => setPage((p) => Math.max(p - 1, 0))}
-        >
-          Prev
-        </button>
-        <span className="px-3 py-1 rounded bg-blue-500 text-white">
-          {page + 1}
-        </span>
-        <button
-          className="bg-gray-300 px-3 py-1 cursor-pointer rounded disabled:opacity-50"
-          disabled={page + 1 >= TOTAL_PAGES}
-          onClick={() => setPage((p) => Math.min(p + 1, TOTAL_PAGES - 1))}
-        >
-          Next
-        </button>
-        <button
-          className="bg-gray-300 px-3 py-1 rounded cursor-pointer disabled:opacity-50"
-          disabled={page + 1 >= TOTAL_PAGES}
-          onClick={() => setPage(TOTAL_PAGES - 1)}
-        >
-          Last
-        </button>
+          <input
+            className="flex-1 border border-purple-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-purple-400"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="New task..."
+          />
+          <button
+            className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl transition cursor-pointer"
+            type="submit"
+          >
+            Add
+          </button>
+        </form>
+
+        {isLoading ? (
+          <p className="text-center text-gray-500">Loading...</p>
+        ) : (
+          <ul className="space-y-4">
+            {localTodos.map((todo, index) => (
+              <li
+                key={todo.id}
+                className="bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white rounded-2xl p-4 shadow-lg flex justify-between items-center"
+              >
+                <div>
+                  <p className="font-bold">{todo.title}</p>
+                  <p className="text-sm text-white/80">
+                    {todo.completed ? "Completed" : "Not Completed"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span
+                    className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1 cursor-pointer"
+                    onClick={() => toggleCompleted(todo.id)}
+                  >
+                    <p className="text-sm text-white/80">
+                      {todo.completed ? "✗" : "✓"}
+                    </p>
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-8 flex flex-wrap items-center gap-2 justify-center">
+          <button
+            className="bg-gray-200 px-3 py-1 rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={page === 0}
+            onClick={() => setPage(0)}
+          >
+            First
+          </button>
+          <button
+            className="bg-gray-200 px-3 py-1 rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={page === 0}
+            onClick={() => setPage((p) => Math.max(p - 1, 0))}
+          >
+            Prev
+          </button>
+          <span className="px-3 py-1 rounded bg-purple-500 text-white">
+            {page + 1}
+          </span>
+          <button
+            className="bg-gray-200 px-3 py-1 cursor-pointer rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={page + 1 >= TOTAL_PAGES}
+            onClick={() => setPage((p) => Math.min(p + 1, TOTAL_PAGES - 1))}
+          >
+            Next
+          </button>
+          <button
+            className="bg-gray-200 px-3 py-1 rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={page + 1 >= TOTAL_PAGES}
+            onClick={() => setPage(TOTAL_PAGES - 1)}
+          >
+            Last
+          </button>
+        </div>
       </div>
     </div>
   );
