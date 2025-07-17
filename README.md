@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧾 TODO-APP
 
-## Getting Started
+A clean and modern Todo app built with Next.js, TypeScript, RTK Query, and TailwindCSS.
 
-First, run the development server:
+## 📁 Project Structure
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+TODO-APP/
+├── public/                     # Static assets (images, icons, etc.)
+├── src/                        # Main source code
+│   ├── app/
+│   │   ├── isr/
+│   │   │   └── page.tsx        # ISR page example
+│   │   ├── layout.tsx         # Main layout component
+│   │   └── page.tsx           # Root page (homepage)
+│   ├── lib/
+│   │   ├── api/
+│   │   │   ├── todos.ts       # RTK Query API definitions
+│   │   │   ├── provider.tsx   # Redux Provider setup
+│   │   │   └── store.ts       # Redux store configuration
+│   │   └── styles/
+│   │       └── globals.css    # Global CSS styling
+│   └── types/
+│       └── todo.ts            # TypeScript types for Todo items
+├── .gitignore                  # Files/directories to ignore in Git
+├── eslint.config.mjs          # ESLint configuration
+├── next-env.d.ts              # Next.js environment types
+├── next.config.ts             # Next.js configuration
+├── package.json               # Project metadata and dependencies
+├── postcss.config.mjs         # PostCSS configuration
+├── README.md                  # Project documentation
+├── tsconfig.json              # TypeScript configuration
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Requirement
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Node Js v20
+- NPM v10
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Installation
 
-## Learn More
+- git clone https://github.com/setyoaldi/AchmadSetyoAldi_FrontEndTest_EZV
+- cd AchmadSetyoAldi_FrontEndTest_EZV
+- git pull
+- npm install
 
-To learn more about Next.js, take a look at the following resources:
+## Running the apps
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- npm run dev
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Pendekatan dan Strategi
 
-## Deploy on Vercel
+1. **Pengambilan Data Todo (GET)**  
+   Data todo diambil menggunakan `useGetTodosQuery` dari RTK Query, dengan parameter query `_start` dan `_limit` untuk mendukung pagination. Setiap halaman memuat 10 item.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2. **Penambahan Todo (POST)**  
+   Formulir akan mengirim data todo baru menggunakan `useAddTodoMutation` ke endpoint:  
+   `POST https://jsonplaceholder.typicode.com/todos`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   > **Catatan:** JSONPlaceholder adalah API dummy, sehingga data tidak benar-benar disimpan, hanya memberikan respons seolah-olah berhasil.
+
+3. **Pagination**  
+   Pagination diterapkan menggunakan offset (`_start`) dan batas (`_limit`), dengan tombol navigasi seperti **Prev**, **Next**, dan nomor halaman yang dirender secara dinamis.
+
+4. **SSR (Server-Side Rendering)**  
+   Untuk halaman tertentu (`app/todos/page.tsx`), digunakan `getServerSideProps` agar data dimuat langsung dari server saat halaman diakses.
+
+5. **ISR (Incremental Static Regeneration)**  
+   Pada halaman lain digunakan `getStaticProps` dengan opsi `revalidate: 10`, yang memungkinkan halaman dirender secara statis lalu diregenerasi otomatis setiap 10 detik.
+
+## Beberapa fitur tambahan
+
+- Pengubahan status item Todo secara lokal
+- Todo yang baru ditambahkan akan tampil otomatis pada urutan teratas namun hanya secara lokal
+- Ada notifikasi yang ditampilkan ketika item Todo ditambahkan atau statusnya diubah
+- Ada semacam widget untuk menampilkan status todo
