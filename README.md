@@ -5,7 +5,7 @@ A clean and modern Todo app built with Next.js, TypeScript, RTK Query, and Tailw
 ## 📁 Project Structure
 
 ```bash
-TODO-APP/
+AchmadSetyoAldi_FrontEndTest_EZV/
 ├── public/                     # Static assets (images, icons, etc.)
 ├── src/                        # Main source code
 │   ├── app/
